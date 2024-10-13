@@ -17,6 +17,9 @@ using namespace std;
 ByteStream::ByteStream(const size_t capacity) { DUMMY_CODE(capacity); }
 
 size_t ByteStream::write(const string &data) {
+    
+    //将data加入缓冲区buf
+
     DUMMY_CODE(data);
     if (input_end == false ){
         return false;
