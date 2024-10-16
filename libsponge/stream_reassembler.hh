@@ -15,7 +15,7 @@ class StreamReassembler {
     bool _eof;
     int a;
     std::map<u_int64_t,std::string> memo{};
-    size_t next_assembled_idx {0} ;
+    //修改 转移位置 到pub
     size_t _unassembled_bytes{0};
     size_t _eof_idx{};
     
@@ -27,6 +27,12 @@ class StreamReassembler {
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.
     //! \note This capacity limits both the bytes that have been reassembled,
     //! and those that have not yet been reassembled.
+
+
+    size_t _next_assembled_idx {0} ;
+
+
+
     StreamReassembler(const size_t capacity);
 
     //! \brief Receive a substring and write any newly contiguous bytes into the stream.
