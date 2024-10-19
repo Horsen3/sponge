@@ -49,11 +49,17 @@ uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint) {
     if (std::abs(static_cast<int64_t>(t + INT_RANGE - checkpoint)) < std::abs(static_cast<int64_t>(ret - checkpoint))) {
         ret = t + INT_RANGE;
     }
-    if (std::abs(static_cast<int64_t>(t + INT_RANGE - checkpoint)) < std::abs(static_cast<int64_t>(ret - checkpoint)) && (t >= INT_RANGE)){
+    if (std::abs(static_cast<int64_t>(t - INT_RANGE - checkpoint)) < std::abs(static_cast<int64_t>(ret - checkpoint)) && (t >= INT_RANGE)){
 
         ret = t - INT_RANGE;
     }
 
     return ret;
+
+    
+
+
+
+
 }
 

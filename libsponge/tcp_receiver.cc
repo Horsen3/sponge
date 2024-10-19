@@ -1,6 +1,9 @@
 #include "tcp_receiver.hh"
+#include "wrapping_integers.hh"
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
+#include <sys/types.h>
 
 // Dummy implementation of a TCP receiver
 
@@ -13,9 +16,14 @@ void DUMMY_CODE(Targs &&... /* unused */) {}
 using namespace std;
 
 
-void TCPReceiver::segment_received(const TCPSegment &seg) {      
+bool TCPReceiver::segment_received(const TCPSegment &seg) {      
     DUMMY_CODE(seg);
-    
+
+    auto &header = seg.header();  
+    auto length = seg.length_in_sequence_space();
+
+
+
    if (seg.header().syn) {
          _isn = seg.header().seqno;
         got_syn = true;
@@ -23,33 +31,47 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
 
     auto checkpoint = _reassembler._next_assembled_idx;
 
-    uint64_t index = unwrap(seg.header().seqno + seg.header().syn,_isn,checkpoint) - 1 ;
+    auto abs_seqno  = unwrap(header.seqno, _isn, checkpoint);
+    auto lower = get_window_left();
+    //判断是否在窗口内
+    if (abs_seqno >=lower + window_size() || (abs_seqno + length <= lower && !header.syn)){
+        return false ;
+    }
+    auto stream_index = abs_seqno - 1 + header.syn;
+    _reassembler.push_substring(seg.payload().copy(), stream_index,header.fin);
+    return true;
 
-    _reassembler.push_substring(seg.payload().copy(), index, seg.header().fin);
-
- 
 }
 
 optional<WrappingInt32> TCPReceiver::ackno() const {
     if (! got_syn){
-        return {};
+        return std::nullopt;
     }
-    size_t ackno = _reassembler.stream_out().bytes_written() + 1;
+    
 
-    if (stream_out().input_ended()){
-        return wrap(ackno + 1,_isn);
-    }
-
-
-    return {};
-
-
+    return wrap(get_window_left(),_isn);
+    
 
 }
 
 size_t TCPReceiver::window_size() const { 
     
     
-    return _reassembler.stream_out().remaining_capacity();
+    return _capacity - _reassembler.stream_out().remaining_capacity();
     
+}
+
+
+//get_window_left
+
+auto TCPReceiver::get_window_left() const ->uint64_t {
+    auto abs_ack_no = _reassembler._next_assembled_idx + 1;
+    if (_reassembler.stream_out().input_ended()){
+        abs_ack_no += 1;
+    }
+
+    return abs_ack_no;
+
+
+
 }

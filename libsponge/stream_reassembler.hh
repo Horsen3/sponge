@@ -13,7 +13,6 @@ class StreamReassembler {
   private:
     // Yosur code here -- add private members as necessary.
     bool _eof;
-    int a;
     std::map<u_int64_t,std::string> memo{};
     //修改 转移位置 到pub
     size_t _unassembled_bytes{0};
@@ -29,7 +28,7 @@ class StreamReassembler {
     //! and those that have not yet been reassembled.
 
 
-    size_t _next_assembled_idx {0} ;
+    size_t _next_assembled_idx{0};
 
 
 

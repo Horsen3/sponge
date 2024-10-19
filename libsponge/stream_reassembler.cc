@@ -12,7 +12,7 @@ void DUMMY_CODE(Targs &&... /* unused */) {}
 
 using namespace std;
 
-StreamReassembler::StreamReassembler(const size_t capacity) : _output(capacity), _capacity(capacity) {}
+StreamReassembler::StreamReassembler(const size_t capacity) : _eof(0),_output(capacity), _capacity(capacity){}
 
 //! \details This function accepts a substring (aka a segment) of bytes,
 //! possibly out-of-order, from the logical stream, and assembles any newly
@@ -26,20 +26,20 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
         _eof_idx = index + data.size();
     }
     size_t idx = index; 
-    if (idx <= next_assembled_idx){
-        if (idx + data.size() > next_assembled_idx){
+    if (idx <= _next_assembled_idx){
+        if (idx + data.size() > _next_assembled_idx){
             auto content = data.substr();
             auto write_count = _output.write(content);
-            next_assembled_idx += write_count;
+            _next_assembled_idx += write_count;
 
             auto iter = memo.begin();
-            while(iter != memo.end() && iter->first <= next_assembled_idx){
+            while(iter != memo.end() && iter->first <= _next_assembled_idx){
                 auto sz = iter -> second.size();
-                if (iter->first + sz >= next_assembled_idx){
+                if (iter->first + sz >= _next_assembled_idx){
                     //遍历之前存的文件区间
-                    auto existed_str = iter->second.substr(next_assembled_idx - iter->first);
+                    auto existed_str = iter->second.substr(_next_assembled_idx - iter->first);
                     auto add_count = _output.write(existed_str);
-                    next_assembled_idx += add_count;
+                    _next_assembled_idx += add_count;
                 }
                 _unassembled_bytes -= sz;
                 iter = memo.erase(iter);

@@ -35,7 +35,7 @@ class TCPReceiver {
     //!
     //! \param capacity the maximum number of bytes that the receiver will
     //!                 store in its buffers at any give time.
-    TCPReceiver(const size_t capacity) : _reassembler(capacity), _capacity(capacity),_isn(0){}     //新加入的_isn初始化 
+    TCPReceiver(const size_t capacity) : _reassembler(capacity), _capacity(capacity),_isn(0),got_syn(false){}     //新加入的_isn初始化 
 
     //! \name Accessors to provide feedback to the remote TCPSender
     //!@{
@@ -64,13 +64,18 @@ class TCPReceiver {
     size_t unassembled_bytes() const { return _reassembler.unassembled_bytes(); }
 
     //! \brief handle an inbound segment
-    void segment_received(const TCPSegment &seg);
+    bool  segment_received(const TCPSegment &seg);
 
     //! \name "Output" interface for the reader
     //!@{
     ByteStream &stream_out() { return _reassembler.stream_out(); }
     const ByteStream &stream_out() const { return _reassembler.stream_out(); }
     //!@}
+
+
+    //取得窗口下边界
+    auto get_window_left() const ->uint64_t;
+
 };
 
 #endif  // SPONGE_LIBSPONGE_TCP_RECEIVER_HH
