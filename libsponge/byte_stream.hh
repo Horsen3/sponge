@@ -12,11 +12,11 @@
 class ByteStream {
   private:
     // Your code here -- add private members as necessary.
-    std::string buf{};     //缓冲区
-    size_t  capacity{}; 
-    size_t  read_bytes{}; 
-    size_t  write_bytes{}; 
-    bool input_end{false};
+    std::string _buf{};     //缓冲区
+    size_t  _capacity{}; 
+    size_t  _read_bytes{}; 
+    size_t  _write_bytes{}; 
+    bool _input_end{};     
     bool _error{};  //!< Flag indicating that the stream suffered an error.
 
   public:
@@ -38,7 +38,7 @@ class ByteStream {
     void end_input();
 
     //! Indicate that the stream suffered an error.
-    void set_error() { _error = true; }
+    void set_error() { _error = false; }
     //!@}
 
     //! \name "Output" interface for the reader
@@ -83,3 +83,14 @@ class ByteStream {
 };
 
 #endif  // SPONGE_LIBSPONGE_BYTE_STREAM_HH
+
+
+
+
+
+
+
+
+
+
+

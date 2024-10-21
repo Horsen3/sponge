@@ -12,7 +12,7 @@ void DUMMY_CODE(Targs &&... /* unused */) {}
 
 using namespace std;
 
-StreamReassembler::StreamReassembler(const size_t capacity) : _output(capacity), _capacity(capacity) {}
+StreamReassembler::StreamReassembler(const size_t capacity) :_eof(false),_output(capacity), _capacity(capacity){}
 
 //! \details This function accepts a substring (aka a segment) of bytes,
 //! possibly out-of-order, from the logical stream, and assembles any newly
@@ -23,25 +23,25 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
     DUMMY_CODE(data, index, eof);
     if (eof){
         _eof = true;     
-        _eof_idx = index + data.size();
+        _eof_idx = index + data.size();   //计算的是改流理应结束的位置，理想状态，正好并入，后续再更改
     }
     size_t idx = index; 
-    if (idx <= next_assembled_idx){
-        if (idx + data.size() > next_assembled_idx){
-            auto content = data.substr();
+    if (idx <= _next_assembled_idx){
+        if (idx + data.size() > _next_assembled_idx){
+            auto content = data.substr(_next_assembled_idx - idx);
             auto write_count = _output.write(content);
-            next_assembled_idx += write_count;
+            _next_assembled_idx += write_count;
 
             auto iter = memo.begin();
-            while(iter != memo.end() && iter->first <= next_assembled_idx){
+            while(iter != memo.end() && iter->first <= _next_assembled_idx){
                 auto sz = iter -> second.size();
-                if (iter->first + sz >= next_assembled_idx){
+                if (iter->first + sz >= _next_assembled_idx){
                     //遍历之前存的文件区间
-                    auto existed_str = iter->second.substr(next_assembled_idx - iter->first);
+                    auto existed_str = iter->second.substr(_next_assembled_idx - iter->first);
                     auto add_count = _output.write(existed_str);
-                    next_assembled_idx += add_count;
+                    _next_assembled_idx += add_count;
                 }
-                _unassembled_bytes -= sz;
+                _unassembled_bytes -= sz;   //未处理完的字节数
                 iter = memo.erase(iter);
             }
         }
@@ -52,34 +52,56 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
         while (iter != memo.end() && iter->first <= idx + s.size()) {
             auto sz = iter->second.size();
             if (iter->first + sz > idx + s.size()) {
-            s += iter->second.substr(idx + s.size() - iter->first);
+                s += iter->second.substr(idx + s.size() - iter->first);
+            }
+
+            _unassembled_bytes -= sz;
+            iter = memo.erase(iter);
+
+            //与前面的memo储存的文件切片区间整合
         }
-         _unassembled_bytes -= sz;
-         iter = memo.erase(iter);
 
-        //与前面的memo储存的文件切片区间整合 
+
+
+        iter = memo.lower_bound(idx);
+        if (iter != memo.begin() && !memo.empty()) {
+            iter--;        
+            auto sz = iter->second.size();
+            if (iter->first + sz >= idx ) {
+
+                if (iter->first + sz > idx +s.size()){
+                    s = iter -> second;
+
+                }else{
+                    s = iter -> second + s.substr(iter->first + sz - idx);
+                }
+                
+                _unassembled_bytes -= sz;
+                idx = iter-> first;
+                memo.erase(iter);
+              
+            }
+           
+        }
         
+        auto store_count = std::min(s.size(), _capacity - _output.buffer_size() - _unassembled_bytes);
+        _unassembled_bytes += store_count;
+        memo.emplace(idx, s.substr(0, store_count));
+  
 
-
-    }
-
-
-
-
-
-
-
+            //与前面的memo储存的文件切片区间整合
 
     }
 
-
-
+     if (_eof && empty()) {
+        _output.end_input();
+    }
 
 
 
 
 }
 
-size_t StreamReassembler::unassembled_bytes() const { return {}; }
+size_t StreamReassembler::unassembled_bytes() const { return _unassembled_bytes; }
 
-bool StreamReassembler::empty() const { return {}; }
+bool StreamReassembler::empty() const { return _unassembled_bytes == 0; }

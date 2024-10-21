@@ -2,18 +2,19 @@
 #define SPONGE_LIBSPONGE_WRAPPING_INTEGERS_HH
 
 #include <cstdint>
+#include <cstdio>
 #include <ostream>
 
 //! \brief A 32-bit integer, expressed relative to an arbitrary initial sequence number (ISN)
 //! \note This is used to express TCP sequence numbers (seqno) and acknowledgment numbers (ackno)
 class WrappingInt32 {
   private:
-    uint32_t _raw_value;  //!< The raw 32-bit stored integer
+    uint32_t _raw_value;  //!< The raw 32-bit stored integer  序列号
 
   public:
     //! Construct from a raw 32-bit unsigned integer
-    explicit WrappingInt32(uint32_t raw_value) : _raw_value(raw_value) {}
-
+    explicit WrappingInt32(uint32_t raw_value) : _raw_value(raw_value) {}//语法，调用构造函数时，直接将r的值赋给_r,高效初始化成员变量
+                                                                         //目的是使用公共方法访问私有变量
     uint32_t raw_value() const { return _raw_value; }  //!< Access raw stored value
 };
 
@@ -21,7 +22,11 @@ class WrappingInt32 {
 //! \param n the absolute sequence number
 //! \param isn the initial sequence number
 //! \returns the relative sequence number
+
+
+
 WrappingInt32 wrap(uint64_t n, WrappingInt32 isn);
+
 
 //! Transform a 32-bit relative sequence number into a 64-bit absolute sequence number (zero-indexed)
 //! \param n The relative sequence number
@@ -44,7 +49,7 @@ uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint);
 //! \returns the number of increments needed to get from `b` to `a`,
 //! negative if the number of decrements needed is less than or equal to
 //! the number of increments
-inline int32_t operator-(WrappingInt32 a, WrappingInt32 b) { return a.raw_value() - b.raw_value(); }
+inline int32_t operator-(WrappingInt32 a, WrappingInt32 b) { return a.raw_value() - b.raw_value(); }   //重载算出序列的差值
 
 //! \brief Whether the two integers are equal.
 inline bool operator==(WrappingInt32 a, WrappingInt32 b) { return a.raw_value() == b.raw_value(); }

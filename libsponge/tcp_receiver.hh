@@ -6,6 +6,7 @@
 #include "tcp_segment.hh"
 #include "wrapping_integers.hh"
 
+#include <cstdint>
 #include <optional>
 
 //! \brief The "receiver" part of a TCP implementation.
@@ -18,14 +19,23 @@ class TCPReceiver {
     StreamReassembler _reassembler;
 
     //! The maximum number of bytes we'll store.
-    size_t _capacity;
+
+    size_t _capacity;            
+    //bool _syn{false};
+    //bool _fin{false};
+    WrappingInt32 _isn;
+    bool got_syn ;        
 
   public:
+
+    
+
+
     //! \brief Construct a TCP receiver
     //!
     //! \param capacity the maximum number of bytes that the receiver will
     //!                 store in its buffers at any give time.
-    TCPReceiver(const size_t capacity) : _reassembler(capacity), _capacity(capacity) {}
+    TCPReceiver(const size_t capacity) : _reassembler(capacity), _capacity(capacity),_isn(0),got_syn(false){}     //新加入的_isn初始化 
 
     //! \name Accessors to provide feedback to the remote TCPSender
     //!@{
@@ -54,13 +64,18 @@ class TCPReceiver {
     size_t unassembled_bytes() const { return _reassembler.unassembled_bytes(); }
 
     //! \brief handle an inbound segment
-    void segment_received(const TCPSegment &seg);
+    bool  segment_received(const TCPSegment &seg);
 
     //! \name "Output" interface for the reader
     //!@{
     ByteStream &stream_out() { return _reassembler.stream_out(); }
     const ByteStream &stream_out() const { return _reassembler.stream_out(); }
     //!@}
+
+
+    //取得窗口下边界
+    auto get_window_left() const ->uint64_t;
+
 };
 
 #endif  // SPONGE_LIBSPONGE_TCP_RECEIVER_HH
