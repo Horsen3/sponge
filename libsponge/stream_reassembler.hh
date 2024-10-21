@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <string>
 #include <sys/types.h>
+#include <vector>
 
 //! \brief A class that assembles a series of excerpts from a byte stream (possibly out of order,
 //! possibly overlapping) into an in-order byte stream.
@@ -13,7 +14,8 @@ class StreamReassembler {
   private:
     // Yosur code here -- add private members as necessary.
     bool _eof;
-    std::map<u_int64_t,std::string> memo{};
+
+    std::map<uint64_t,std::string> memo{};
     //修改 转移位置 到pub
     size_t _unassembled_bytes{0};
     size_t _eof_idx{};
@@ -21,15 +23,12 @@ class StreamReassembler {
 
     ByteStream _output;  //!< The reassembled in-order byte stream
     size_t _capacity;    //!< The maximum number of bytes
-
+    
   public:
+    size_t _next_assembled_idx{0};
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.
     //! \note This capacity limits both the bytes that have been reassembled,
     //! and those that have not yet been reassembled.
-
-
-    size_t _next_assembled_idx{0};
-
 
 
     StreamReassembler(const size_t capacity);

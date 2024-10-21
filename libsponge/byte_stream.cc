@@ -14,46 +14,41 @@ void DUMMY_CODE(Targs &&... /* unused */) {}
 
 using namespace std;
 
-ByteStream::ByteStream(const size_t capacity) { DUMMY_CODE(capacity); }
-
-// size_t ByteStream::write(const string &data) {
-    
-//     //将data加入缓冲区buf
-
-//     if (_input_end){
-//         return 0;
-//     }
-//     size_t remain = _capacity - _buf.size();     
-//     size_t write_count = std::min(data.size(),remain);
-//     _write_bytes += write_count;
-//     _buf.insert(_buf.end(),data.begin(),data.begin()+write_count);
-
-//     return write_count;
-// }
-
+ByteStream::ByteStream(const size_t capacity):_buf(),_capacity(capacity),_read_bytes(),_write_bytes(),_input_end(false),_error(){}
 
 size_t ByteStream::write(const string &data) {
-  if (_input_end) {
-    return 0;
-  }
-  size_t remain = _capacity - _buf.size();
-  size_t write_count = std::min(remain, data.size());
-  _write_bytes += write_count;
-  _buf.insert(_buf.end(), data.begin(), data.begin() + write_count);
-  return write_count;
+    
+    //将data加入缓冲区buf
+
+    DUMMY_CODE(data);
+    if (_input_end){
+        return 0;
+    }
+    size_t remain = _capacity - _buf.size();     
+    size_t write_count = std::min(data.size(),remain);
+    _write_bytes += write_count;
+    _buf.insert(_buf.end(),data.begin(),data.begin()+write_count);
+
+    return write_count;
 }
-
-
 
 //! \param[in] len bytes will be copied from the output side of the buffer
 string ByteStream::peek_output(const size_t len) const {
-  size_t read_count = std::min(len, _buf.size());
-  return std::string(_buf.begin(), _buf.begin() + read_count);
+    DUMMY_CODE(len);
+    size_t read_count = std::min(len,_buf.size());
+    return std::string(_buf.begin(),_buf.begin() + read_count);
+    
 }
 
-
 //! \param[in] len bytes will be removed from the output side of the buffer
-//原pop out
+void ByteStream::pop_output(const size_t len) {
+    
+    DUMMY_CODE(len); 
+
+    size_t pop_count = std::min(len, _buf.size());
+    _read_bytes += pop_count;
+    _buf.erase(_buf.begin(), _buf.begin() + pop_count);
+}
 
 
 
@@ -66,13 +61,7 @@ std::string ByteStream::read(const size_t len) {
     return {};
 }
 
-void ByteStream::pop_output(const size_t len) {
-  size_t pop_count = std::min(len, _buf.size());
-  _read_bytes += pop_count;
-  _buf.erase(_buf.begin(), _buf.begin() + pop_count);
-}
-
-void ByteStream::end_input() { _input_end = true; }
+void ByteStream::end_input() {_input_end = true;}
 
 bool ByteStream::input_ended() const { return _input_end; }
 

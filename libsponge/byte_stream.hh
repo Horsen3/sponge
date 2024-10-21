@@ -16,7 +16,7 @@ class ByteStream {
     size_t  _capacity{}; 
     size_t  _read_bytes{}; 
     size_t  _write_bytes{}; 
-    bool _input_end{false};
+    bool _input_end{};     
     bool _error{};  //!< Flag indicating that the stream suffered an error.
 
   public:
